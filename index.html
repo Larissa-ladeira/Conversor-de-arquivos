@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TopConvert - Conversor de PDF</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">Top<span>Convert</span></div>
+        </div>
+    </header>
+
+    <main class="content-wrapper">
+        <section class="hero-section">
+            <h1>Transforme seus documentos em segundos</h1>
+            <p>De JPG para PDF ou de PDF para EPUB, garantimos a melhor qualidade e rapidez. Simples. Rápido. Grátis.</p>
+        </section>
+
+        <div class="converter-container">
+            <div class="converter-card">
+                <div class="card-header">
+                    <div class="file-info-box">
+                        <div class="icon-indicator">📄</div>
+                        <span id="fileNameDisplay">Nenhum arquivo selecionado</span>
+                    </div>
+
+                    <div class="format-selector">
+                        <span class="label">para</span>
+                        <div class="custom-dropdown">
+                            <button id="dropdownBtn" class="dropdown-trigger">
+                                <span id="selectedFormat">PDF</span>
+                                <span class="arrow">▼</span>
+                            </button>
+                            <div id="dropdownMenu" class="dropdown-content">
+                                <div class="format-grid">
+                                    <button class="format-option" data-ext="jpg">JPG</button>
+                                    <button class="format-option active" data-ext="pdf">PDF</button>
+                                    <button class="format-option" data-ext="png">PNG</button>
+                                    <button class="format-option" data-ext="epub">EPUB</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <label for="imageInput" class="btn-secondary">
+                        + Adicionar Arquivo
+                    </label>
+                    <button id="convertBtn" class="btn-primary">
+                        Converter <span>→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <input type="file" id="imageInput" accept="image/*,application/pdf" style="display: none;">
+    <img id="preview" style="display: none;">
+
+    <script src="script.js"></script>
+</body>
+</html>
