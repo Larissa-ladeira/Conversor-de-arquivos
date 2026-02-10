@@ -1,167 +1,274 @@
 :root {
-    --primary: #ff3e3e;
-    --primary-hover: #e03535;
-    --dark: #252525;
-    --light-bg: #f8f9fa;
-    --radius: 6px; /* Bordas mais finas como você pediu */
+    --primary: #3b82f6;
+    --pdf-red: #ef4444;
+    --doc-blue: #2563eb;
+    --xls-green: #10b981;
+    --img-orange: #f59e0b;
+    --epub-purple: #8b5cf6;
+    --bg-light: #f8fafc;
 }
 
-* { 
-    margin: 0; 
+* { margin: 0; 
     padding: 0; 
     box-sizing: border-box; 
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif; 
 }
 
 body { 
-    background-color: var(--light-bg); 
-    overflow-x: hidden; 
+    background: var(--bg-light); 
+    color: #1e293b; 
 }
+
+/* HEADER FIXO */
 
 .navbar { 
     background: white; 
     padding: 15px 0; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+    border-bottom: 1px solid #e2e8f0; 
 }
+.navbar.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    z-index: 1000;
+
+}
+
 .container { 
     max-width: 1100px; 
     margin: 0 auto; 
     padding: 0 20px; 
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
 }
+
 .logo { 
-    font-size: 22px; 
-    font-weight: bold; 
-    color: var(--primary); 
+    font-size: 24px; 
+    font-weight: 800; 
+    color: var(--pdf-red);
+    cursor: pointer;
+    text-align: left; 
 }
 .logo span { 
-    color: #555; 
+    color: #1e293b; 
+}
+
+.content-wrapper {
+    max-width: 1100px; 
+    margin: 0 auto; 
+    padding: 40px 20px; 
+    text-align: center; 
 }
 
 .hero-section { 
-    text-align: center; 
-    padding: 40px 20px 20px; 
+    margin-bottom: 40px; 
 }
 .hero-section h1 { 
-    font-size: 32px; 
-    color: #333; 
+    padding-top: 30px;
+    font-size: 42px; 
+    font-weight: 800; 
     margin-bottom: 10px; 
+    color: #1e293b;
+    background: linear-gradient(90deg, #1e293b, #3b82f6); -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+    background-size: 100%;
+    display: block;
 }
 .hero-section p { 
+    color: #64748b; 
     font-size: 18px; 
-    color: #666; 
-    max-width: 600px; 
-    margin: 0 auto; 
 }
 
-.converter-container { 
+/* Drop Zone */
+.upload-section { 
+    margin-bottom: 50px; 
     display: flex; 
     justify-content: center; 
-    padding: 20px; 
 }
-.converter-card {
+.drop-zone { 
     background: white; 
-    width: 100%; 
-    max-width: 750px;
-    border-radius: var(--radius); 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    position: relative; 
-    border: 1px solid #eee;
+    border: 2px dashed #cbd5e1; 
+    width: 100%; max-width: 700px;
+    padding: 60px; 
+    border-radius: 24px; 
+    transition: 0.3s; 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+}
+.drop-zone.drag-over { 
+    border-color: var(--primary); 
+    background: #eff6ff; 
+    transform: scale(1.02); 
+}
+.upload-icon { 
+    font-size: 50px; 
+    margin-bottom: 10px; 
+}
+.btn-select { 
+    background: var(--primary); 
+    color: white; padding: 12px 30px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: 700; 
+    display: inline-block; 
+    margin-top: 15px; 
 }
 
-.card-header { display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    padding: 25px; gap: 15px; 
+/* Grid de Cards */
+.tools-container { 
+    display: flex; 
+    gap: 30px; 
+    justify-content: center; 
     flex-wrap: wrap; 
 }
-.file-info-box { 
-    display: flex; 
-    align-items: center; 
-    gap: 12px; 
+.tool-column { 
     flex: 1; 
+    min-width: 300px; 
+    max-width: 400px; 
 }
-.icon-indicator { 
-    background: #eee; 
-    padding: 10px; 
-    border-radius: 4px; 
+.tool-column h3 { 
+    margin-bottom: 20px; 
+    color: #475569; 
+    font-size: 16px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
 }
-
-.custom-dropdown { 
-    position: relative; 
-    display: inline-block; 
-}
-.dropdown-trigger {
-    background: white; 
-    border: 1px solid #ddd; 
-    padding: 8px 16px;
-    border-radius: 4px; 
-    font-weight: 600; 
-    cursor: pointer;
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    min-width: 90px;
-}
-
-.dropdown-content {
-    display: none; 
-    position: absolute; 
-    top: 110%; right: 0;
-    background: var(--dark);
-    width: 220px; 
-    border-radius: 6px;
-    padding: 10px; 
-    z-index: 9999 !important; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.format-grid { 
+.tool-grid { 
     display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 8px; 
+    gap: 15px; 
 }
-.format-option {
-    background: #3a3a3a; 
-    border: none; 
-    color: white; 
-    padding: 8px;
-    border-radius: 4px; 
+
+.tool-card {
+    background: white; 
+    border: 1px solid #eef2f6; 
+    padding: 25px; 
+    border-radius: 18px;
     cursor: pointer; 
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.tool-card:hover { 
+    transform: translateY(-8px); 
+    border-color: var(--primary); 
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1); 
+}
+.tool-card p { 
+    margin-top: 15px; 
+    font-weight: 600; 
+    color: #334155; 
+}
+
+/* Badges */
+.badge { 
+    padding: 4px 10px; 
+    border-radius: 6px; 
+    color: white; 
     font-size: 12px; 
+    font-weight: 900; 
+}
+.badge.pdf { 
+    background: var(--pdf-red); 
+}
+.badge.doc { 
+    background: var(--doc-blue); 
+}
+.badge.xls { 
+    background: var(--xls-green); 
+}
+.badge.img { 
+    background: var(--img-orange);
+}
+.badge.epub { 
+    background: var(--epub-purple); 
+}
+
+/* Progress Modal */
+.modal-overlay { 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(15, 23, 42, 0.85); 
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 9999; 
+    backdrop-filter: blur(4px);
+}
+.modal-content {
+    background: white; 
+    padding: 45px; 
+    border-radius: 28px; 
+    width: 450px; 
+    text-align: center; 
+}
+.loader-visual {
+    position: relative; 
+    width: 80px; 
+    height: 80px; 
+    margin: 0 auto 20px; 
+}
+.file-icon-pulse { 
+    font-size: 50px; 
+    animation: pulse 1.5s infinite; 
+}
+.download-icon { 
+    position: absolute; 
+    bottom: 0; 
+    right: 10px; 
+    font-size: 24px; 
+    color: var(--primary); 
+    font-weight: bold; 
+}
+.progress-container { 
+    background: #e2e8f0; 
+    height: 14px; 
+    border-radius: 10px; 
+    margin-top: 30px; 
+    overflow: hidden; 
+}
+.progress-bar { 
+    background: var(--primary); 
+    width: 0%; 
+    height: 100%; 
+    transition: width 0.3s ease; 
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); 
+}
+
+@keyframes pulse {
+    0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } 
+}
+#conversion-render-zone { 
+    position: absolute; 
+    left: -9999px; 
+    width: 800px; 
+}
+
+footer {
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    padding: 30px 20px;
+    text-align: center;
+    color: #64748b; 
+    font-size: 20px;
+    font-weight: 500;
+    margin-top: 60px; 
+}
+
+footer a {
+    color: var(--primary); 
+    text-decoration: none;
+    font-weight: 700;
     transition: 0.2s;
 }
-.format-option.active { 
-    background: var(--primary); 
-}
-.format-option:hover { 
-    background: #555; 
-}
 
-.card-footer {
-    background: #333; 
-    padding: 15px 25px; 
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    border-bottom-left-radius: var(--radius); 
-    border-bottom-right-radius: var(--radius);
-}
-
-.btn-secondary { 
-    color: white; 
-    font-weight: bold; 
-    cursor: pointer; 
-    font-size: 14px; 
-}
-.btn-primary {
-    background: var(--primary); 
-    color: white; 
-    border: none;
-    padding: 12px 30px; 
-    border-radius: 4px; 
-    font-weight: bold;
-    cursor: pointer; 
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
+footer a:hover {
+    color: var(--doc-blue);
+    text-decoration: underline;
 }

@@ -1,116 +1,201 @@
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+document.addEventListener('DOMContentLoaded', () => {
+    // Configuração do Worker do PDF.js (necessário para ler PDFs)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const dropdownBtn = document.getElementById('dropdownBtn');
-const dropdownMenu = document.getElementById('dropdownMenu');
-const imageInput = document.getElementById('imageInput');
-const preview = document.getElementById('preview');
-const fileNameDisplay = document.getElementById('fileNameDisplay');
-const selectedFormatDisplay = document.getElementById('selectedFormat');
-const convertBtn = document.getElementById('convertBtn');
+    // Elementos da Interface
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const dropZone = document.getElementById('dropZone');
+    const modal = document.getElementById('progressModal');
+    const progressBar = document.getElementById('progressBar');
+    const percentText = document.getElementById('percentText');
+    const statusText = document.getElementById('statusText');
+    const renderZone = document.getElementById('conversion-render-zone');
 
-// --- CORREÇÃO DO DROPDOWN ---
-document.addEventListener('click', (e) => {
-    // Se clicar no botão ou em qualquer item dentro dele (texto, seta)
-    if (dropdownBtn.contains(e.target)) {
-        e.stopPropagation();
-        const isVisible = dropdownMenu.style.display === 'block';
-        dropdownMenu.style.display = isVisible ? 'none' : 'block';
-    } 
-    // Se clicar fora do menu, fecha
-    else if (!dropdownMenu.contains(e.target)) {
-        dropdownMenu.style.display = 'none';
+    let currentFile = null;
+
+    // --- Lógica de Upload ---
+
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        handleFile(e.dataTransfer.files[0]);
+    };
+
+    function handleFile(file) {
+        if (!file) return;
+        currentFile = file;
+        fileNameDisplay.innerHTML = `<span style="color: #10b981;">✅ Selecionado: ${file.name}</span>`;
+        dropZone.style.borderColor = "#10b981";
+        dropZone.style.background = "#f0fff4";
     }
-});
 
-// Seleção de formato
-document.querySelectorAll('.format-option').forEach(option => {
-    option.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const valor = this.getAttribute('data-ext').toUpperCase();
-        selectedFormatDisplay.innerText = valor;
-        
-        document.querySelectorAll('.format-option').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        dropdownMenu.style.display = 'none'; // Fecha após selecionar
+    // --- Gerenciamento de Conversão ---
+
+    document.querySelectorAll('.tool-card').forEach(card => {
+        card.onclick = async () => {
+            if (!currentFile) {
+                alert("Por favor, selecione um arquivo primeiro!");
+                return;
+            }
+            const action = card.dataset.action;
+            executeConversion(action);
+        };
     });
-});
 
-// --- SELEÇÃO DE ARQUIVO ---
-imageInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        fileNameDisplay.innerText = file.name;
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (event) => preview.src = event.target.result;
-            reader.readAsDataURL(file);
-        } else {
-            preview.src = ""; 
+    async function executeConversion(action) {
+        showModal();
+        let progress = 0;
+        const fileName = currentFile.name.split('.')[0];
+
+        // Animação da barra de progresso
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 10;
+                updateUI(progress);
+            }
+        }, 400);
+
+        try {
+            switch (action) {
+                case 'pdf-to-epub':
+                    await convertPdfToEpub(currentFile, fileName);
+                    break;
+                case 'pdf-to-img':
+                    await convertPdfToImg(currentFile, fileName);
+                    break;
+                case 'img-to-pdf':
+                    await convertImgToPdf(currentFile, fileName);
+                    break;
+                case 'docx-to-pdf':
+                    await convertDocxToPdf(currentFile, fileName);
+                    break;
+                case 'xlsx-to-pdf':
+                    await convertXlsxToPdf(currentFile, fileName);
+                    break;
+                case 'pdf-to-docx':
+                    alert("A extração de PDF para Word requer processamento via servidor para manter a formatação original.");
+                    break;
+                default:
+                    console.log("Ação não reconhecida");
+            }
+            
+            // Finalização
+            clearInterval(interval);
+            updateUI(100);
+            statusText.innerHTML = `Concluído com sucesso! 100%`;
+            setTimeout(hideModal, 1000);
+
+        } catch (error) {
+            console.error(error);
+            clearInterval(interval);
+            hideModal();
+            alert("Erro ao converter o arquivo. Verifique o formato.");
         }
     }
-});
 
-// --- CONVERSÃO ---
-convertBtn.addEventListener('click', async () => {
-    const format = selectedFormatDisplay.innerText;
-    const file = imageInput.files[0];
+    // --- Motores de Conversão Específicos ---
 
-    if (!file) return alert("Selecione um arquivo primeiro!");
+    async function convertPdfToEpub(file, name) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        let fullText = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            fullText += `<h2>Página ${i}</h2><p>` + content.items.map(s => s.str).join(" ") + "</p>";
+        }
+        const blob = new Blob([`<html><body>${fullText}</body></html>`], { type: 'application/epub+zip' });
+        downloadBlob(blob, `${name}.epub`);
+    }
 
-    if (format === 'EPUB') {
-        if (file.type !== 'application/pdf') return alert("Selecione um PDF para gerar EPUB.");
-        await convertPdfToEpub(file);
-    } 
-    else if (format === 'PDF') {
-        if (!preview.src) return alert("Selecione uma imagem.");
+    async function convertImgToPdf(file, name) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.addImage(preview.src, 'JPEG', 10, 10, 190, 0); 
-        doc.save("convertido.pdf");
-    } 
-    else {
-        if (!preview.src) return alert("Selecione uma imagem.");
+        const dataUrl = await fileToDataURL(file);
+        doc.addImage(dataUrl, 'JPEG', 10, 10, 190, 0);
+        doc.save(`${name}.pdf`);
+    }
+
+    async function convertDocxToPdf(file, name) {
+        renderZone.innerHTML = "";
+        const arrayBuffer = await file.arrayBuffer();
+        await docx.renderAsync(arrayBuffer, renderZone);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'pt', 'a4');
+        await doc.html(renderZone, {
+            callback: (d) => d.save(`${name}.pdf`),
+            x: 15, y: 15, width: 560, windowWidth: 800
+        });
+    }
+
+    async function convertXlsxToPdf(file, name) {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer);
+        const html = XLSX.utils.sheet_to_html(workbook.Sheets[workbook.SheetNames[0]]);
+        renderZone.innerHTML = html;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'pt', 'a4');
+        await doc.html(renderZone, {
+            callback: (d) => d.save(`${name}.pdf`),
+            x: 10, y: 10, width: 750, windowWidth: 1000
+        });
+    }
+
+    async function convertPdfToImg(file, name) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 2 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        const link = document.createElement('a');
+        link.download = `${name}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg');
+        link.click();
+    }
+
+    // --- Funções Auxiliares (UI e Arquivos) ---
+
+    function showModal() { 
+        modal.style.display = 'flex'; 
+        statusText.innerHTML = `Iniciando conversão... <span id="percentText">0%</span>`;
+    }
+
+    function hideModal() { 
+        modal.style.display = 'none'; 
+        updateUI(0);
+    }
+
+    function updateUI(val) {
+        const p = Math.min(Math.round(val), 100);
+        progressBar.style.width = p + '%';
+        const pSpan = document.getElementById('percentText');
+        if (pSpan) pSpan.innerText = p + '%';
+    }
+
+    function fileToDataURL(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function downloadBlob(blob, name) {
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = preview.src;
-        a.download = `arquivo.${format.toLowerCase()}`;
+        a.href = url;
+        a.download = name;
         a.click();
+        URL.revokeObjectURL(url);
     }
 });
-
-async function convertPdfToEpub(file) {
-    const originalText = convertBtn.innerHTML;
-    try {
-        const reader = new FileReader();
-        convertBtn.innerText = "Processando...";
-        convertBtn.disabled = true;
-
-        reader.onload = async function() {
-            const typedarray = new Uint8Array(this.result);
-            const pdf = await pdfjsLib.getDocument(typedarray).promise;
-            let textContent = "";
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const text = await page.getTextContent();
-                textContent += `<h2>Página ${i}</h2><p>${text.items.map(s => s.str).join(" ")}</p>`;
-            }
-
-            const epubHtml = `<html><body>${textContent}</body></html>`;
-            const blob = new Blob([epubHtml], { type: 'application/epub+zip' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file.name.split('.')[0] + ".epub";
-            a.click();
-
-            convertBtn.innerHTML = originalText;
-            convertBtn.disabled = false;
-        };
-        reader.readAsArrayBuffer(file);
-    } catch (e) {
-        alert("Erro na conversão.");
-        convertBtn.innerHTML = originalText;
-        convertBtn.disabled = false;
-    }
-}

@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TopConvert - Conversor de PDF</title>
+    <title>TopConvert Pro - Conversor de Arquivos</title>
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.1.15/dist/docx-preview.js"></script>
 </head>
 <body>
 
-    <header class="navbar">
+    <header class="navbar fixed-header">
         <div class="container">
             <div class="logo">Top<span>Convert</span></div>
         </div>
@@ -22,48 +26,73 @@
             <p>De JPG para PDF ou de PDF para EPUB, garantimos a melhor qualidade e rapidez. Simples. Rápido. Grátis.</p>
         </section>
 
-        <div class="converter-container">
-            <div class="converter-card">
-                <div class="card-header">
-                    <div class="file-info-box">
-                        <div class="icon-indicator">📄</div>
-                        <span id="fileNameDisplay">Nenhum arquivo selecionado</span>
-                    </div>
+        <div class="upload-section">
+            <div class="drop-zone" id="dropZone">
+                <div class="upload-icon">📁</div>
+                <h2 id="fileNameDisplay">Arraste seu arquivo aqui</h2>
+                <p>ou</p>
+                <label for="fileInput" class="btn-select">Selecionar Arquivo</label>
+                <input type="file" id="fileInput" hidden>
+            </div>
+        </div>
 
-                    <div class="format-selector">
-                        <span class="label">para</span>
-                        <div class="custom-dropdown">
-                            <button id="dropdownBtn" class="dropdown-trigger">
-                                <span id="selectedFormat">PDF</span>
-                                <span class="arrow">▼</span>
-                            </button>
-                            <div id="dropdownMenu" class="dropdown-content">
-                                <div class="format-grid">
-                                    <button class="format-option" data-ext="jpg">JPG</button>
-                                    <button class="format-option active" data-ext="pdf">PDF</button>
-                                    <button class="format-option" data-ext="png">PNG</button>
-                                    <button class="format-option" data-ext="epub">EPUB</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="tools-container">
+            <div class="tool-column">
+                <h3>Converter de PDF</h3>
+                <div class="tool-grid">
+                    <button class="tool-card" data-action="pdf-to-epub">
+                        <span class="badge pdf">PDF</span> ➔ <span class="badge epub">EPUB</span>
+                        <p>PDF para EPUB</p>
+                    </button>
+                    <button class="tool-card" data-action="pdf-to-docx">
+                        <span class="badge pdf">PDF</span> ➔ <span class="badge doc">DOC</span>
+                        <p>PDF para Word</p>
+                    </button>
+                    <button class="tool-card" data-action="pdf-to-img">
+                        <span class="badge pdf">PDF</span> ➔ <span class="badge img">JPG</span>
+                        <p>PDF para JPG</p>
+                    </button>
                 </div>
+            </div>
 
-                <div class="card-footer">
-                    <label for="imageInput" class="btn-secondary">
-                        + Adicionar Arquivo
-                    </label>
-                    <button id="convertBtn" class="btn-primary">
-                        Converter <span>→</span>
+            <div class="tool-column">
+                <h3>Converter para PDF</h3>
+                <div class="tool-grid">
+                    <button class="tool-card" data-action="docx-to-pdf">
+                        <span class="badge doc">DOC</span> ➔ <span class="badge pdf">PDF</span>
+                        <p>Word para PDF</p>
+                    </button>
+                    <button class="tool-card" data-action="img-to-pdf">
+                        <span class="badge img">JPG</span> ➔ <span class="badge pdf">PDF</span>
+                        <p>JPG para PDF</p>
+                    </button>
+                    <button class="tool-card" data-action="xlsx-to-pdf">
+                        <span class="badge xls">XLS</span> ➔ <span class="badge pdf">PDF</span>
+                        <p>Excel para PDF</p>
                     </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <input type="file" id="imageInput" accept="image/*,application/pdf" style="display: none;">
-    <img id="preview" style="display: none;">
+    <div id="progressModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="loader-visual">
+                <div class="file-icon-pulse">📄</div>
+                <div class="download-icon">↓</div>
+            </div>
+            <h3 id="statusText">Seu arquivo está sendo carregado <span id="percentText">0%</span></h3>
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="conversion-render-zone"></div>
 
     <script src="script.js"></script>
+
+
+    <footer>Desenvolvido por <a href="https://github.com/Larissa-ladeira?tab=repositories">Larissa &copy;</a>2026</footer>
 </body>
 </html>
