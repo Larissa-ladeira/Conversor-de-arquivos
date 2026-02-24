@@ -16,6 +16,13 @@
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'><path fill='%231e293b' d='M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V173.3c0-17-6.7-33.3-18.7-45.3L352 50.7C340 38.7 323.7 32 306.7 32H64zm192 32V192H128V64H256zM192 416c-35.3 0-64-28.7-64-64s28.7-64 64-64s64 28.7 64 64s-28.7 64-64 64z'/></svg>">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+
+
 </head>
 <body>
 
@@ -42,7 +49,7 @@
                 <input type="file" id="fileInput" hidden>
             </div>
         </div>
-
+<!-- Coluna 1: Converter de PDF -->
         <div class="tools-container">
             <div class="tool-column">
                 <h3>Converter de PDF</h3>
@@ -59,9 +66,14 @@
                         <span class="badge pdf">PDF</span> ➔ <span class="badge img">JPG</span>
                         <p>PDF para JPG</p>
                     </button>
+
+                    <button class="tool-card" data-action="pdf-to-xlsx">
+                        <span class="badge pdf">PDF</span> ➔ <span class="badge xls">XLSX</span>
+                        <p>PDF para Excel</p>
+                    </button>
                 </div>
             </div>
-
+<!-- Coluna 2: Converter para PDF -->
             <div class="tool-column">
                 <h3>Converter para PDF</h3>
                 <div class="tool-grid">
@@ -77,9 +89,53 @@
                         <span class="badge xls">XLS</span> ➔ <span class="badge pdf">PDF</span>
                         <p>Excel para PDF</p>
                     </button>
+
+                    <button class="tool-card" data-action="epub-to-pdf">
+                        <span class="badge epub">EPUB</span> ➔ <span class="badge pdf">PDF</span>
+                        <p>EPUB para PDF</p>
+                    </button>
                 </div>
             </div>
-        </div>
+<!-- Coluna 3: Conversor de Imagem (JPG/PNG) -->
+            <div class="tool-column">
+                <h3>Conversor de Imagem</h3>
+                <div class="tool-grid">
+                    <button class="tool-card" data-action="jpg-to-png">
+                        <span class="badge img">JPG</span> ➔ <span class="badge png">PNG</span>
+                        <p>JPG para PNG</p>
+                    </button>
+                    <button class="tool-card" data-action="png-to-jpg">
+                        <span class="badge png">PNG</span> ➔ <span class="badge img">JPG</span>
+                        <p>PNG para JPG</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Coluna extra ou dentro da existente: Conversor Avançado / Moderno -->
+            <div class="tool-column">
+                <h3>Formatos Modernos</h3>
+                <div class="tool-grid">
+                    <button class="tool-card" data-action="heic-to-jpg">
+                        <span class="badge heic">HEIC</span> → <span class="badge img">JPG</span>
+                        <p>HEIC para JPG</p>
+                    </button>
+                    <button class="tool-card" data-action="heic-to-png">
+                        <span class="badge heic">HEIC</span> → <span class="badge png">PNG</span>
+                        <p>HEIC para PNG</p>
+                    </button>
+                    <button class="tool-card" data-action="webp-to-jpg">
+                        <span class="badge webp">WEBP</span> → <span class="badge img">JPG</span>
+                        <p>WEBP para JPG</p>
+                    </button>
+                    <button class="tool-card" data-action="webp-to-png">
+                        <span class="badge webp">WEBP</span> → <span class="badge png">PNG</span>
+                        <p>WEBP para PNG</p>
+                    </button>
+                </div>
+            </div>
+
+
+
     </main>
 
     <div id="progressModal" class="modal-overlay">

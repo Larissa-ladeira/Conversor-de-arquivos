@@ -5,7 +5,14 @@
     --xls-green: #10b981;
     --img-orange: #f59e0b;
     --epub-purple: #8b5cf6;
+    --png-teal: #14b8a6;    
     --bg-light: #f8fafc;
+    --heic-pink: #ec4899;   
+    --webp-teal: #06b6d4;   
+}
+
+.badge.heic { background: var(--heic-pink); }
+.badge.webp { background: var(--webp-teal); }
 }
 
 * { margin: 0; 
@@ -188,6 +195,16 @@ body {
 }
 .badge.epub { 
     background: var(--epub-purple); 
+}
+.badge.png {
+    background: var(--png-teal);   /* teal moderno, ou troque por #a855f7 se preferir roxo */
+}
+
+.badge.heic { 
+    background: var(--heic-pink); 
+}
+.badge.webp { 
+    background: var(--webp-teal); 
 }
 
 /* Progress Modal */

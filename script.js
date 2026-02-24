@@ -78,6 +78,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'xlsx-to-pdf':
                     await convertXlsxToPdf(currentFile, fileName);
                     break;
+                case 'jpg-to-png':
+                    await convertJpgToPng(currentFile, fileName);
+                    break;
+                case 'png-to-jpg':
+                    await convertPngToJpg(currentFile, fileName);
+                    break;
+                case 'webp-to-jpg':
+                    await convertWebpToJpg(currentFile, fileName);
+                    break;
+                case 'webp-to-png':
+                    await convertWebpToPng(currentFile, fileName);
+                    break;
+                case 'heic-to-jpg':
+                    await convertHeicToJpg(currentFile, fileName);
+                    break;
+                case 'heic-to-png':
+                    await convertHeicToPng(currentFile, fileName);
+                    break;
+                case 'epub-to-pdf':
+                    await convertEpubToPdf(currentFile, fileName);
+                    break;
                 case 'pdf-to-docx':
                     alert("A extração de PDF para Word requer processamento via servidor para manter a formatação original.");
                     break;
@@ -163,7 +184,60 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     }
 
-    // --- Funções Auxiliares (UI e Arquivos) ---
+    async function convertJpgToPng(file, name) {
+        const dataUrl = await fileToDataURL(file);
+        
+        // Criamos uma imagem temporária para garantir que carregue
+        const img = new Image();
+        img.src = dataUrl;
+        
+        await new Promise(resolve => {
+            img.onload = resolve;
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        // Exporta como PNG (qualidade máxima)
+        const pngUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `${name}.png`;
+        link.href = pngUrl;
+        link.click();
+    }
+
+    async function convertPngToJpg(file, name) {
+        const dataUrl = await fileToDataURL(file);
+        
+        const img = new Image();
+        img.src = dataUrl;
+        
+        await new Promise(resolve => {
+            img.onload = resolve;
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        
+        // Fundo branco (JPG não suporta transparência)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        // Exporta como JPG com qualidade 0.92 (bom equilíbrio)
+        const jpgUrl = canvas.toDataURL('image/jpeg', 0.92);
+        const link = document.createElement('a');
+        link.download = `${name}.jpg`;
+        link.href = jpgUrl;
+        link.click();
+    }
+
+    // --- Funções Auxiliares ---
 
     function showModal() { 
         modal.style.display = 'flex'; 
