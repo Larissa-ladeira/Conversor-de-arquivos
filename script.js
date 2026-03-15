@@ -29,10 +29,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleFile(file) {
         if (!file) return;
+        
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            alert("O ficheiro é muito grande! Para conversões no browser, tente ficheiros menores que 10MB.");
+            return;
+        }
+
         currentFile = file;
         fileNameDisplay.innerHTML = `<span style="color: #10b981;">✅ Selecionado: ${file.name}</span>`;
         dropZone.style.borderColor = "#10b981";
-        dropZone.style.background = "#f0fff4";
     }
 
     // --- Gerenciamento de Conversão ---
@@ -156,18 +162,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function convertXlsxToPdf(file, name) {
+        statusText.innerText = "Lendo dados da planilha...";
+        updateUI(20);
+
         const arrayBuffer = await file.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer);
         const html = XLSX.utils.sheet_to_html(workbook.Sheets[workbook.SheetNames[0]]);
-        renderZone.innerHTML = html;
+        
+        statusText.innerText = "Preparando visualização...";
+        updateUI(50);
+
+        renderZone.innerHTML = `<div id="export-container" style="padding: 30px; background: white; color: black; font-family: sans-serif;">
+            <h2 style="text-align: center;">${name}</h2>
+            ${html}
+        </div>`;
+        
+        // Pequeno delay para o browser renderizar o HTML pesado
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        statusText.innerText = "Gerando ficheiro PDF (pode demorar)...";
+        updateUI(80);
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'pt', 'a4');
-        await doc.html(renderZone, {
-            callback: (d) => d.save(`${name}.pdf`),
-            x: 10, y: 10, width: 750, windowWidth: 1000
+        const element = document.getElementById('export-container');
+
+        await doc.html(element, {
+            callback: (d) => {
+                d.save(`${name}.pdf`);
+                renderZone.innerHTML = "";
+            },
+            x: 15,
+            y: 15,
+            width: 780, 
+            windowWidth: 1100
         });
     }
-
     async function convertPdfToImg(file, name) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;

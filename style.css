@@ -11,9 +11,13 @@
     --webp-teal: #06b6d4;   
 }
 
-.badge.heic { background: var(--heic-pink); }
-.badge.webp { background: var(--webp-teal); }
+.badge.heic { 
+    background: var(--heic-pink); 
 }
+.badge.webp { 
+    background: var(--webp-teal); 
+}
+
 
 * { margin: 0; 
     padding: 0; 
@@ -256,6 +260,16 @@ body {
     height: 100%; 
     transition: width 0.3s ease; 
     box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); 
+}
+
+#export-container table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 10pt;
+}
+#export-container th, #export-container td {
+    border: 1px solid #ddd;
+    padding: 8px;
 }
 
 @keyframes pulse {
