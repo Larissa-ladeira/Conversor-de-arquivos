@@ -191,79 +191,83 @@ async function executeConversion(action) {
 
 async function convertImgToPdf(files, name) {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const a4Width = 210;
-        const a4Height = 297;
         
-        for (let i = 0; i < files.length; i++) {
+        const firstFile = files[0];
+        const dataUrl = await fileToDataURL(firstFile);
+        
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise(resolve => { img.onload = resolve; });
+        
+        const widthMm = img.width * 0.264583;
+        const heightMm = img.height * 0.264583;
+        
+        const orientation = widthMm > heightMm ? 'l' : 'p';
+        const doc = new jsPDF({
+            orientation: orientation,
+            unit: 'mm',
+            format: [widthMm, heightMm]
+        });
+        
+        doc.addImage(dataUrl, 'PNG', 0, 0, widthMm, heightMm);
+        
+        for (let i = 1; i < files.length; i++) {
             const file = files[i];
-            const dataUrl = await fileToDataURL(file);
+            const dtUrl = await fileToDataURL(file);
+            const image = new Image();
+            image.src = dtUrl;
+            await new Promise(resolve => { image.onload = resolve; });
             
-            const img = new Image();
-            img.src = dataUrl;
-            await new Promise(resolve => { img.onload = resolve; });
+            const wMm = image.width * 0.264583;
+            const hMm = image.height * 0.264583;
             
-            const imgWidth = img.width;
-            const imgHeight = img.height;
-            
-            const widthRatio = a4Width / imgWidth;
-            const heightRatio = a4Height / imgHeight;
-            const scale = Math.min(widthRatio, heightRatio);
-            
-            const finalWidth = imgWidth * scale;
-            const finalHeight = imgHeight * scale;
-            const x = (a4Width - finalWidth) / 2;
-            const y = (a4Height - finalHeight) / 2;
-            
-            if (i > 0) doc.addPage();
-            doc.addImage(dataUrl, 'JPEG', x, y, finalWidth, finalHeight);
+            doc.addPage([wMm, hMm], wMm > hMm ? 'l' : 'p');
+            doc.addImage(dtUrl, 'PNG', 0, 0, wMm, hMm);
         }
-        doc.save(`${name}.pdf`);
+        
+        doc.save(name + '.pdf');
     }
 
 async function convertDocxToPdf(file, name) {
         showModal();
+        statusText.innerHTML = 'Enviando arquivo para conversão...';
+        updateUI(20);
         
         try {
-            statusText.innerHTML = 'Verificando servidor...';
-            updateUI(10);
-            
-            var formData = new FormData();
+            const formData = new FormData();
             formData.append('file', file);
             
-            statusText.innerHTML = 'Enviando arquivo...';
-            updateUI(20);
+            statusText.innerHTML = 'Convertendo com LibreOffice...';
+            updateUI(40);
             
-            var response = await fetch('http://localhost:3001/convert/docx-to-pdf', {
+            const response = await fetch('/convert/docx-to-pdf', {
                 method: 'POST',
                 body: formData
             });
             
-            updateUI(60);
+            updateUI(70);
             
             if (!response.ok) {
-                throw new Error('Server error');
+                const errorData = await response.json();
+                throw new Error(errorData.details || errorData.error || 'Erro na conversão');
             }
             
-            var blob = await response.blob();
+            const blob = await response.blob();
             
             updateUI(90);
+            statusText.innerText = 'Finalizando...';
             
-            var url = URL.createObjectURL(blob);
-            var link = document.createElement('a');
-            link.href = url;
-            link.download = name + '.pdf';
-            link.click();
+            // Baixa o arquivo convertido
+            downloadBlob(blob, name + '.pdf');
             
-            URL.revokeObjectURL(url);
             updateUI(100);
-            hideModal();
-        } catch (error) {
-            console.log('Server not available, using fallback:', error);
-            statusText.innerText = 'Servidor indisponível. Convertendo no navegador...';
-            updateUI(30);
+            statusText.innerText = 'Conversão concluída com sucesso!';
+            setTimeout(hideModal, 1500);
             
-            await convertDocxToPdfFallback(file, name);
+        } catch (error) {
+            console.error('Erro:', error);
+            hideModal();
+            alert('Erro ao converter: ' + error.message + '\n\nCertifique-se de que LibreOffice está instalado no sistema.');
         }
     }
     
@@ -341,43 +345,46 @@ async function convertDocxToPdfFallback(file, name) {
         }
     }
     
-    async function convertXlsxToPdf(file, name) {
+async function convertXlsxToPdf(file, name) {
         showModal();
-        statusText.innerHTML = 'Enviando arquivo para conversão...';
-        updateUI(10);
-        
-        var formData = new FormData();
-        formData.append('file', file);
-        
+        statusText.innerText = "Enviando arquivo para conversão...";
+        updateUI(20);
+
         try {
-            var response = await fetch('http://localhost:3001/convert/xlsx-to-pdf', {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            statusText.innerText = "Convertendo com LibreOffice...";
+            updateUI(40);
+            
+            const response = await fetch('/convert/xlsx-to-pdf', {
                 method: 'POST',
                 body: formData
             });
             
-            updateUI(80);
+            updateUI(70);
             
             if (!response.ok) {
-                throw new Error('Conversion failed');
+                const errorData = await response.json();
+                throw new Error(errorData.details || errorData.error || 'Erro na conversão');
             }
             
-            var blob = await response.blob();
-            var url = URL.createObjectURL(blob);
+            const blob = await response.blob();
             
-            var link = document.createElement('a');
-            link.href = url;
-            link.download = name + '.pdf';
-            link.click();
+            updateUI(90);
+            statusText.innerText = "Finalizando...";
             
-            URL.revokeObjectURL(url);
+            // Baixa o arquivo convertido
+            downloadBlob(blob, name + ".pdf");
+            
             updateUI(100);
-            hideModal();
-        } catch (error) {
-            console.error('Error:', error);
-            statusText.innerText = 'Erro na conversão. Usando método alternativo.';
-            updateUI(50);
+            statusText.innerText = "Conversão concluída com sucesso!";
+            setTimeout(hideModal, 1500);
             
-            await convertXlsxToPdfFallback(file, name);
+        } catch (error) {
+            console.error('Erro:', error);
+            hideModal();
+            alert('Erro ao converter: ' + error.message + '\n\nCertifique-se de que LibreOffice está instalado no sistema.');
         }
     }
     
