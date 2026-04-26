@@ -68,6 +68,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             var action = card.getAttribute('data-action');
+            
+            var fileExt = currentFiles[0].name.split('.').pop().toLowerCase();
+            var valid = validateFileExtension(action, fileExt);
+            
+            if (!valid) {
+                var expectedFormats = getExpectedFormats(action);
+                alert("Formato inválido! Este botão espera arquivos " + expectedFormats + ", mas você selecionou: ." + fileExt);
+                return;
+            }
+            
             executeConversion(action);
         });
     });
@@ -532,5 +542,47 @@ async function convertXlsxToPdf(file, name) {
         a.download = name;
         a.click();
         URL.revokeObjectURL(url);
+    }
+
+    function validateFileExtension(action, fileExt) {
+        var validExtensions = {
+            'pdf-to-epub': ['pdf'],
+            'pdf-to-docx': ['pdf'],
+            'pdf-to-img': ['pdf'],
+            'pdf-to-xlsx': ['pdf'],
+            'docx-to-pdf': ['doc', 'docx'],
+            'img-to-pdf': ['jpg', 'jpeg', 'png', 'webp', 'heic'],
+            'xlsx-to-pdf': ['xls', 'xlsx'],
+            'epub-to-pdf': ['epub'],
+            'jpg-to-png': ['jpg', 'jpeg'],
+            'png-to-jpg': ['png'],
+            'webp-to-jpg': ['webp'],
+            'webp-to-png': ['webp'],
+            'heic-to-jpg': ['heic'],
+            'heic-to-png': ['heic']
+        };
+        
+        var extensions = validExtensions[action];
+        return extensions && extensions.includes(fileExt);
+    }
+
+    function getExpectedFormats(action) {
+        var formats = {
+            'pdf-to-epub': 'PDF',
+            'pdf-to-docx': 'PDF',
+            'pdf-to-img': 'PDF',
+            'pdf-to-xlsx': 'PDF',
+            'docx-to-pdf': 'DOC/DOCX',
+            'img-to-pdf': 'JPG, PNG, WEBP ou HEIC',
+            'xlsx-to-pdf': 'XLS/XLSX',
+            'epub-to-pdf': 'EPUB',
+            'jpg-to-png': 'JPG/JPEG',
+            'png-to-jpg': 'PNG',
+            'webp-to-jpg': 'WEBP',
+            'webp-to-png': 'WEBP',
+            'heic-to-jpg': 'HEIC',
+            'heic-to-png': 'HEIC'
+        };
+        return formats[action] || 'desconhecido';
     }
 });
