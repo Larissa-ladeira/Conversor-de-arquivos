@@ -1,66 +1,83 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Configuração do Worker do PDF.js (necessário para ler PDFs)
+document.addEventListener('DOMContentLoaded', function() {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    // Elementos da Interface
-    const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
-    const dropZone = document.getElementById('dropZone');
-    const modal = document.getElementById('progressModal');
-    const progressBar = document.getElementById('progressBar');
-    const percentText = document.getElementById('percentText');
-    const statusText = document.getElementById('statusText');
-    const renderZone = document.getElementById('conversion-render-zone');
+    var fileInput = document.getElementById('fileInput');
+    var fileNameDisplay = document.getElementById('fileNameDisplay');
+    var dropZone = document.getElementById('dropZone');
+    var modal = document.getElementById('progressModal');
+    var progressBar = document.getElementById('progressBar');
+    var percentText = document.getElementById('percentText');
+    var statusText = document.getElementById('statusText');
+    var renderZone = document.getElementById('conversion-render-zone');
+    var toolCards = document.querySelectorAll('.tool-card');
 
-    let currentFile = null;
+    var currentFiles = null;
 
-    // --- Lógica de Upload ---
+    // Evento de clique no dropZone
+    dropZone.addEventListener('click', function() {
+        fileInput.click();
+    });
 
-    dropZone.onclick = () => fileInput.click();
-    fileInput.onchange = (e) => handleFile(e.target.files[0]);
+// Evento de mudança no input
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files.length > 0) {
+            handleFiles(e.target.files);
+        }
+    });
 
-    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
-    dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
-    dropZone.ondrop = (e) => {
+    // Drag and drop
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', function() {
+        dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
         e.preventDefault();
         dropZone.classList.remove('drag-over');
-        handleFile(e.dataTransfer.files[0]);
-    };
-
-    function handleFile(file) {
-        if (!file) return;
-        
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxSize) {
-            alert("O ficheiro é muito grande! Para conversões no browser, tente ficheiros menores que 10MB.");
-            return;
+        if (e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
         }
+    });
 
-        currentFile = file;
-        fileNameDisplay.innerHTML = `<span style="color: #10b981;">✅ Selecionado: ${file.name}</span>`;
+    function handleFiles(files) {
+        if (!files || files.length === 0) return;
+        
+        var maxSize = 10 * 1024 * 1024;
+        for (var i = 0; i < files.length; i++) {
+            if (files[i].size > maxSize) {
+                alert("O ficheiro é muito grande!");
+                return;
+            }
+        }
+        
+        currentFiles = files;
+        var fileNames = Array.from(files).map(function(f) { return f.name; }).join(', ');
+        fileNameDisplay.innerHTML = '<span style="color: #10b981;">✅ Selecionado: ' + fileNames + '</span>';
         dropZone.style.borderColor = "#10b981";
     }
 
-    // --- Gerenciamento de Conversão ---
-
-    document.querySelectorAll('.tool-card').forEach(card => {
-        card.onclick = async () => {
-            if (!currentFile) {
+    // Tool cards
+    toolCards.forEach(function(card) {
+        card.addEventListener('click', function() {
+            if (!currentFiles || currentFiles.length === 0) {
                 alert("Por favor, selecione um arquivo primeiro!");
                 return;
             }
-            const action = card.dataset.action;
+            var action = card.getAttribute('data-action');
             executeConversion(action);
-        };
+        });
     });
 
-    async function executeConversion(action) {
+async function executeConversion(action) {
         showModal();
-        let progress = 0;
-        const fileName = currentFile.name.split('.')[0];
+        var progress = 0;
+        var fileName = currentFiles[0].name.split('.')[0];
 
-        // Animação da barra de progresso
-        const interval = setInterval(() => {
+        var interval = setInterval(function() {
             if (progress < 90) {
                 progress += Math.random() * 10;
                 updateUI(progress);
@@ -70,63 +87,94 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             switch (action) {
                 case 'pdf-to-epub':
-                    await convertPdfToEpub(currentFile, fileName);
+                    await convertPdfToEpub(currentFiles[0], fileName);
                     break;
                 case 'pdf-to-img':
-                    await convertPdfToImg(currentFile, fileName);
+                    await convertPdfToImg(currentFiles[0], fileName);
                     break;
                 case 'img-to-pdf':
-                    await convertImgToPdf(currentFile, fileName);
+                    await convertImgToPdf(currentFiles, fileName);
                     break;
                 case 'docx-to-pdf':
-                    await convertDocxToPdf(currentFile, fileName);
+                    await convertDocxToPdf(currentFiles[0], fileName);
                     break;
                 case 'xlsx-to-pdf':
-                    await convertXlsxToPdf(currentFile, fileName);
+                    await convertXlsxToPdf(currentFiles[0], fileName);
                     break;
                 case 'jpg-to-png':
-                    await convertJpgToPng(currentFile, fileName);
+                    await convertJpgToPng(currentFiles[0], fileName);
                     break;
                 case 'png-to-jpg':
-                    await convertPngToJpg(currentFile, fileName);
+                    await convertPngToJpg(currentFiles[0], fileName);
                     break;
                 case 'webp-to-jpg':
-                    await convertWebpToJpg(currentFile, fileName);
+                    await convertWebpToJpg(currentFiles[0], fileName);
                     break;
                 case 'webp-to-png':
-                    await convertWebpToPng(currentFile, fileName);
+                    await convertWebpToPng(currentFiles[0], fileName);
                     break;
                 case 'heic-to-jpg':
-                    await convertHeicToJpg(currentFile, fileName);
+                    await convertHeicToJpg(currentFiles[0], fileName);
                     break;
                 case 'heic-to-png':
-                    await convertHeicToPng(currentFile, fileName);
+                    await convertHeicToPng(currentFiles[0], fileName);
                     break;
                 case 'epub-to-pdf':
-                    await convertEpubToPdf(currentFile, fileName);
+                    await convertEpubToPdf(currentFiles[0], fileName);
                     break;
                 case 'pdf-to-docx':
-                    alert("A extração de PDF para Word requer processamento via servidor para manter a formatação original.");
+                    alert("A extração de PDF para Word requer processamento via servidor.");
                     break;
                 default:
                     console.log("Ação não reconhecida");
             }
             
-            // Finalização
             clearInterval(interval);
             updateUI(100);
-            statusText.innerHTML = `Concluído com sucesso! 100%`;
+            statusText.innerHTML = 'Concluído com sucesso! 100%';
             setTimeout(hideModal, 1000);
 
-        } catch (error) {
+} catch (error) {
             console.error(error);
             clearInterval(interval);
             hideModal();
-            alert("Erro ao converter o arquivo. Verifique o formato.");
+            alert("Erro ao converter o arquivo: " + error.message);
         }
     }
 
-    // --- Motores de Conversão Específicos ---
+    function showModal() {
+        modal.style.display = 'flex'; 
+        statusText.innerHTML = 'Iniciando conversão... <span id="percentText">0%</span>';
+    }
+
+    function hideModal() { 
+        modal.style.display = 'none'; 
+        updateUI(0);
+    }
+
+    function updateUI(val) {
+        var p = Math.min(Math.round(val), 100);
+        progressBar.style.width = p + '%';
+    }
+
+    function fileToDataURL(file) {
+        return new Promise(function(resolve) {
+            var reader = new FileReader();
+            reader.onload = function(e) { resolve(e.target.result); };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function downloadBlob(blob, name) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // --- Conversion Functions ---
 
     async function convertPdfToEpub(file, name) {
         const arrayBuffer = await file.arrayBuffer();
@@ -141,27 +189,199 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadBlob(blob, `${name}.epub`);
     }
 
-    async function convertImgToPdf(file, name) {
+async function convertImgToPdf(files, name) {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const dataUrl = await fileToDataURL(file);
-        doc.addImage(dataUrl, 'JPEG', 10, 10, 190, 0);
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const a4Width = 210;
+        const a4Height = 297;
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const dataUrl = await fileToDataURL(file);
+            
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise(resolve => { img.onload = resolve; });
+            
+            const imgWidth = img.width;
+            const imgHeight = img.height;
+            
+            const widthRatio = a4Width / imgWidth;
+            const heightRatio = a4Height / imgHeight;
+            const scale = Math.min(widthRatio, heightRatio);
+            
+            const finalWidth = imgWidth * scale;
+            const finalHeight = imgHeight * scale;
+            const x = (a4Width - finalWidth) / 2;
+            const y = (a4Height - finalHeight) / 2;
+            
+            if (i > 0) doc.addPage();
+            doc.addImage(dataUrl, 'JPEG', x, y, finalWidth, finalHeight);
+        }
         doc.save(`${name}.pdf`);
     }
 
-    async function convertDocxToPdf(file, name) {
-        renderZone.innerHTML = "";
-        const arrayBuffer = await file.arrayBuffer();
-        await docx.renderAsync(arrayBuffer, renderZone);
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'pt', 'a4');
-        await doc.html(renderZone, {
-            callback: (d) => d.save(`${name}.pdf`),
-            x: 15, y: 15, width: 560, windowWidth: 800
-        });
+async function convertDocxToPdf(file, name) {
+        showModal();
+        
+        try {
+            statusText.innerHTML = 'Verificando servidor...';
+            updateUI(10);
+            
+            var formData = new FormData();
+            formData.append('file', file);
+            
+            statusText.innerHTML = 'Enviando arquivo...';
+            updateUI(20);
+            
+            var response = await fetch('http://localhost:3001/convert/docx-to-pdf', {
+                method: 'POST',
+                body: formData
+            });
+            
+            updateUI(60);
+            
+            if (!response.ok) {
+                throw new Error('Server error');
+            }
+            
+            var blob = await response.blob();
+            
+            updateUI(90);
+            
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = name + '.pdf';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            updateUI(100);
+            hideModal();
+        } catch (error) {
+            console.log('Server not available, using fallback:', error);
+            statusText.innerText = 'Servidor indisponível. Convertendo no navegador...';
+            updateUI(30);
+            
+            await convertDocxToPdfFallback(file, name);
+        }
     }
-
+    
+async function convertDocxToPdfFallback(file, name) {
+        console.log('Starting convertDocxToPdfFallback...');
+        statusText.innerText = 'Convertendo documento...';
+        updateUI(40);
+        
+        try {
+            var arrayBuffer = await file.arrayBuffer();
+            console.log('File loaded, arrayBuffer length:', arrayBuffer.byteLength);
+            
+            var renderContainer = document.createElement('div');
+            renderContainer.style.position = 'fixed';
+            renderContainer.style.left = '-9999px';
+            renderContainer.style.top = '0';
+            renderContainer.style.width = '595px';
+            renderContainer.style.backgroundColor = '#ffffff';
+            document.body.appendChild(renderContainer);
+            
+            await docx.renderAsync(arrayBuffer, renderContainer, null, {
+                breakPages: true,
+                ignoreLastRenderedPageBreak: false
+            });
+            
+            var pages = renderContainer.querySelectorAll('.docx-page');
+            console.log('Pages found:', pages.length);
+            
+            await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+            
+            statusText.innerText = 'Gerando PDF...';
+            updateUI(70);
+            
+            var pdfDoc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            var pageWidthMm = 210;
+            var pageHeightMm = 297;
+            
+            if (pages.length > 0) {
+                for (var i = 0; i < pages.length; i++) {
+                    var canvas = await html2canvas(pages[i], {
+                        scale: 2,
+                        backgroundColor: '#ffffff'
+                    });
+                    
+                    var imgData = canvas.toDataURL('image/jpeg', 0.85);
+                    
+                    if (i > 0) pdfDoc.addPage();
+                    pdfDoc.addImage(imgData, 'JPEG', 0, 0, pageWidthMm, pageHeightMm);
+                }
+            } else {
+                var canvas = await html2canvas(renderContainer, {
+                    scale: 2,
+                    backgroundColor: '#ffffff'
+                });
+                console.log('Canvas height:', canvas.height);
+                
+                var imgData = canvas.toDataURL('image/jpeg', 0.85);
+                pdfDoc.addImage(imgData, 'JPEG', 0, 0, pageWidthMm, pageHeightMm);
+            }
+            
+            statusText.innerText = 'Finalizando...';
+            updateUI(95);
+            
+            pdfDoc.save(name + '.pdf');
+            
+            document.body.removeChild(renderContainer);
+            
+            updateUI(100);
+            hideModal();
+            console.log('Conversion complete');
+        } catch (error) {
+            console.error('Error in convertDocxToPdfFallback:', error);
+            alert('Erro: ' + error.message);
+            hideModal();
+        }
+    }
+    
     async function convertXlsxToPdf(file, name) {
+        showModal();
+        statusText.innerHTML = 'Enviando arquivo para conversão...';
+        updateUI(10);
+        
+        var formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            var response = await fetch('http://localhost:3001/convert/xlsx-to-pdf', {
+                method: 'POST',
+                body: formData
+            });
+            
+            updateUI(80);
+            
+            if (!response.ok) {
+                throw new Error('Conversion failed');
+            }
+            
+            var blob = await response.blob();
+            var url = URL.createObjectURL(blob);
+            
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = name + '.pdf';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            updateUI(100);
+            hideModal();
+        } catch (error) {
+            console.error('Error:', error);
+            statusText.innerText = 'Erro na conversão. Usando método alternativo.';
+            updateUI(50);
+            
+            await convertXlsxToPdfFallback(file, name);
+        }
+    }
+    
+    async function convertXlsxToPdfFallback(file, name) {
         statusText.innerText = "Lendo dados da planilha...";
         updateUI(20);
 
@@ -177,7 +397,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ${html}
         </div>`;
         
-        // Pequeno delay para o browser renderizar o HTML pesado
         await new Promise(resolve => setTimeout(resolve, 800));
 
         statusText.innerText = "Gerando ficheiro PDF (pode demorar)...";
@@ -188,8 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const element = document.getElementById('export-container');
 
         await doc.html(element, {
-            callback: (d) => {
-                d.save(`${name}.pdf`);
+            callback: function(d) {
+                d.save(name + ".pdf");
                 renderZone.innerHTML = "";
             },
             x: 15,
@@ -201,17 +420,22 @@ document.addEventListener('DOMContentLoaded', () => {
     async function convertPdfToImg(file, name) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 2 });
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
-        const link = document.createElement('a');
-        link.download = `${name}.jpg`;
-        link.href = canvas.toDataURL('image/jpeg');
-        link.click();
+        const totalPages = pdf.numPages;
+
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 2 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            
+            const link = document.createElement('a');
+            link.download = `${name}_page${pageNum}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg');
+            link.click();
+        }
     }
 
     async function convertJpgToPng(file, name) {

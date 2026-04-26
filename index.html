@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.1.15/dist/docx-preview.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.7/dist/docx-preview.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -43,10 +43,9 @@
         <div class="upload-section">
             <div class="drop-zone" id="dropZone">
                 <div class="upload-icon">📁</div>
-                <h2 id="fileNameDisplay">Arraste seu arquivo aqui</h2>
-                <p>ou</p>
+                <h2 id="fileNameDisplay">Arraste seu arquivo aqui ou clique no botão</h2>
                 <label for="fileInput" class="btn-select">Selecionar Arquivo</label>
-                <input type="file" id="fileInput" hidden>
+                <input type="file" id="fileInput" multiple>
             </div>
         </div>
 <!-- Coluna 1: Converter de PDF -->
